@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
+
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 import {PriceConverter} from "./PriceConverter.sol";
@@ -20,8 +21,7 @@ contract FundMe {
     AggregatorV3Interface private s_priceFeed;
 
     address[] private s_funders;
-    mapping(address funder => uint256 fundedAmount)
-        private s_addressToFundedAmount;
+    mapping(address funder => uint256 fundedAmount) private s_addressToFundedAmount;
 
     //////Constructor
     constructor(address priceFeed) {
@@ -31,10 +31,7 @@ contract FundMe {
 
     ////Fund Function
     function fund() public payable {
-        require(
-            msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD,
-            "Insufficient funds"
-        );
+        require(msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD, "Insufficient funds");
 
         s_funders.push(msg.sender);
         s_addressToFundedAmount[msg.sender] += msg.value;
@@ -54,27 +51,19 @@ contract FundMe {
 
     function cheaperWithdraw() public onlyOwner {
         uint256 funderLength = s_funders.length;
-        for (
-            uint256 funderIndex = 0;
-            funderIndex < funderLength;
-            funderIndex++
-        ) {
+        for (uint256 funderIndex = 0; funderIndex < funderLength; funderIndex++) {
             address funder = s_funders[funderIndex];
             s_addressToFundedAmount[funder] = 0;
         }
 
         uint256 balance = address(this).balance;
 
-        (bool callSuccess, ) = payable(msg.sender).call{value: balance}("");
+        (bool callSuccess,) = payable(msg.sender).call{value: balance}("");
         require(callSuccess, "Call failed");
     }
 
     function withdraw() public onlyOwner {
-        for (
-            uint256 funderIndex = 0;
-            funderIndex < s_funders.length;
-            funderIndex++
-        ) {
+        for (uint256 funderIndex = 0; funderIndex < s_funders.length; funderIndex++) {
             address funder = s_funders[funderIndex];
             s_addressToFundedAmount[funder] = 0;
         }
@@ -93,7 +82,7 @@ contract FundMe {
         //call
         //You may want to use Checks-Effects-Interactions pattern and Re-entrancy Guards for safety.
         //import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-        (bool callSuccess, ) = payable(msg.sender).call{value: balance}("");
+        (bool callSuccess,) = payable(msg.sender).call{value: balance}("");
         require(callSuccess, "Call failed");
     }
 
@@ -109,9 +98,7 @@ contract FundMe {
 
     //view pure functions (getters)
 
-    function getAddressToFundedAmount(
-        address fundingAddress
-    ) external view returns (uint256) {
+    function getAddressToFundedAmount(address fundingAddress) external view returns (uint256) {
         return s_addressToFundedAmount[fundingAddress];
     }
 
